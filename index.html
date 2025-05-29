@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matriz SGEDA - Ciclo de Vida del Expediente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .cycle-badge {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .cycle-info {
+            background: #e8f5e9;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .cycle-info h3 {
+            color: #155724;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .cycle-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .cycle-step {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #155724;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .step-reqs {
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+
+        /* FILTROS MEJORADOS */
+        .filters-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .filters-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .filters-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .filters-title::before {
+            content: "🔍";
+            font-size: 1.2em;
+        }
+
+        .clear-filters {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clear-filters:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .clear-filters::before {
+            content: "✖";
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: #80bdff;
+        }
+
+        .filter-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .filter-label::before {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: block;
+            content: "";
+        }
+
+        .filter-group:nth-child(1) .filter-label::before { background: #28a745; }
+        .filter-group:nth-child(2) .filter-label::before { background: #dc3545; }
+        .filter-group:nth-child(3) .filter-label::before { background: #007bff; }
+        .filter-group:nth-child(4) .filter-label::before { background: #ffc107; }
+
+        .filter-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s ease;
+            color: #495057;
+        }
+
+        .filter-control:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,.1);
+            background: #fafbfc;
+        }
+
+        .search-wrapper {
+            position: relative;
+            grid-column: 1 / -1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 45px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 15px;
+            background: white;
+            transition: all 0.3s ease;
+            color: #495057;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 4px rgba(0,123,255,.15);
+            background: #fafbfc;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .search-clear.show {
+            opacity: 1;
+        }
+
+        .search-clear:hover {
+            background: #5a6268;
+        }
+
+        .filters-status {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+
+        .filters-count {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .active-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tag {
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            border: 1px solid #b3d9ff;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #495057;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 1px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: top;
+            font-size: 12px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e8f4f8;
+            cursor: pointer;
+        }
+
+        .req-num {
+            font-weight: bold;
+            text-align: center;
+            background: #e9ecef;
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+
+        .cycle-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .cycle-captura { background: #cce5ff; color: #004085; }
+        .cycle-clasificacion { background: #e2d5f1; color: #5a2d82; }
+        .cycle-conformacion { background: #ffeaa7; color: #8b6f00; }
+        .cycle-metadatos { background: #ffd93d; color: #856404; }
+        .cycle-indice { background: #b8f5cd; color: #155724; }
+        .cycle-validacion { background: #d4edda; color: #155724; }
+        .cycle-cierre { background: #f8d7da; color: #721c24; }
+        .cycle-disposicion { background: #d6d8db; color: #383d41; }
+        .cycle-complementario { background: #e2e3e5; color: #6c757d; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-critica { background: #dc3545; color: white; }
+        .badge-alta { background: #fd7e14; color: white; }
+        .badge-media { background: #007bff; color: white; }
+        .badge-baja { background: #6c757d; color: white; }
+
+        .iso-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin: 1px;
+        }
+
+        .description {
+            max-width: 300px;
+            line-height: 1.4;
+        }
+
+        .process {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 11px;
+        }
+
+        .summary-section {
+            margin-top: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .summary-card h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+        }
+
+        .summary-list {
+            list-style: none;
+        }
+
+        .summary-list li {
+            padding: 5px 0;
+            font-size: 0.9em;
+            color: #6c757d;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .export-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .export-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .cycle-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 11px;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Matriz SGEDA - Ciclo de Vida del Expediente</h1>
+            <p class="subtitle">Muestreo Estratificado de Requerimientos Funcionales</p>
+            <span class="cycle-badge">Cobertura Completa: 8 Etapas del Ciclo</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">56</div>
+                <div class="stat-label">Requerimientos Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">23</div>
+                <div class="stat-label">Ciclo de Vida Core</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Etapas Cubiertas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Fases Implementación</div>
+            </div>
+        </div>
+
+        <div class="cycle-info">
+            <h3>Etapas del Ciclo de Vida del Expediente</h3>
+            <div class="cycle-steps">
+                <div class="cycle-step">
+                    <div class="step-title">1. Captura Documental</div>
+                    <div class="step-reqs">Req. 1, 2, 25 - Ingreso y procesamiento</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">2. Clasificación</div>
+                    <div class="step-reqs">Req. 3, 4, 6 - Organización jerárquica</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">3. Conformación</div>
+                    <div class="step-reqs">Req. 7, 8, 9 - Agrupación lógica</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">4. Metadatos</div>
+                    <div class="step-reqs">Req. 10, 14 - Descripción y contexto</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">5. Índice Electrónico</div>
+                    <div class="step-reqs">Req. 12, 13 - Estructuración e indexación</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">6. Validación</div>
+                    <div class="step-reqs">Req. 15, 16 - Verificación e integridad</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">7. Cierre</div>
+                    <div class="step-reqs">Req. 2, 3 - Finalización y restricciones</div>
+                </div>
+                <div class="cycle-step">
+                    <div class="step-title">8. Disposición Final</div>
+                    <div class="step-reqs">Req. 48-52 - Transferencia y conservación</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters-container">
+            <div class="filters-header">
+                <div class="filters-title">Filtros de Búsqueda</div>
+                <button class="clear-filters" onclick="clearAllFilters()">Limpiar Filtros</button>
+            </div>
+            
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <div class="filter-label">Etapa del Ciclo</div>
+                    <select id="cicloFilter" class="filter-control">
+                        <option value="">Todas las etapas</option>
+                        <option value="Captura documental">Captura</option>
+                        <option value="Clasificación documental">Clasificación</option>
+                        <option value="Conformación de expedientes">Conformación</option>
+                        <option value="Diligenciamiento de metadatos">Metadatos</option>
+                        <option value="Generación de índice electrónico">Índice</option>
+                        <option value="Validación del expediente">Validación</option>
+                        <option value="Cierre del expediente">Cierre</option>
+                        <option value="Inventario y disposición final">Disposición</option>
+                        <option value="Complementario">Complementarios</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">Nivel de Criticidad</div>
+                    <select id="criticidadFilter" class="filter-control">
+                        <option value="">Todas las criticidades</option>
+                        <option value="Crítica">🔴 Crítica</option>
+                        <option value="Alta">🟠 Alta</option>
+                        <option value="Media">🔵 Media</option>
+                        <option value="Baja">⚪ Baja</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">Fase de Implementación</div>
+                    <select id="faseFilter" class="filter-control">
+                        <option value="">Todas las fases</option>
+                        <option value="Fase 1">📍 Fase 1 - Inmediata</option>
+                        <option value="Fase 2">📍 Fase 2 - Desarrollo</option>
+                        <option value="Fase 3">📍 Fase 3 - Mejoras</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">Estándar ISO</div>
+                    <select id="isoFilter" class="filter-control">
+                        <option value="">Todos los estándares</option>
+                        <option value="ISO 15489">ISO 15489 - Gestión de documentos</option>
+                        <option value="ISO 16175">ISO 16175 - Documentos electrónicos</option>
+                        <option value="ISO 23081">ISO 23081 - Metadatos</option>
+                        <option value="ISO 27001">ISO 27001 - Seguridad</option>
+                        <option value="ISO 30300">ISO 30300 - Sistemas gestión</option>
+                        <option value="ISO 14721">ISO 14721 - OAIS</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="search-wrapper">
+                <div class="search-icon">🔍</div>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar en descripción, categoría, proceso o número de requerimiento...">
+                <button class="search-clear" id="searchClear" onclick="clearSearch()">✖</button>
+            </div>
+            
+            <div class="filters-status">
+                <div class="filters-count" id="resultsCount">Mostrando todos los requerimientos</div>
+                <div class="active-filters" id="activeFilters"></div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="matrixTable">
+                <thead>
+                    <tr>
+                        <th>Req.</th>
+                        <th>Trascendencia</th>
+                        <th>Etapa del Ciclo</th>
+                        <th>Proceso</th>
+                        <th>Descripción</th>
+                        <th>ISO</th>
+                        <th>Criticidad</th>
+                        <th>Fase</th>
+                    </tr>
+                </thead>
+                <tbody id="matrixBody">
+                    <!-- Datos se cargan aquí -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary-section">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h4>Por Criticidad</h4>
+                    <ul class="summary-list" id="criticidadSummary"></ul>
+                </div>
+                <div class="summary-card">
+                    <h4>Por Ciclo de Vida</h4>
+                    <ul class="summary-list" id="cicloSummary"></ul>
+                </div>
+                <div class="summary-card">
+                    <h4>Por Fases</h4>
+                    <ul class="summary-list" id="faseSummary"></ul>
+                </div>
+                <div class="summary-card">
+                    <h4>Estándares ISO</h4>
+                    <ul class="summary-list" id="isoSummary"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-section">
+            <h3>Exportar Datos</h3>
+            <button class="export-btn" onclick="exportToCSV()">📄 Exportar CSV</button>
+            <button class="export-btn" onclick="exportToExcel()">📊 Generar Excel</button>
+            <button class="export-btn" onclick="window.print()">🖨️ Imprimir</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Datos de requerimientos - COMPLETO
+        const requerimientos = [
+            // CICLO DE VIDA CORE - CAPTURA DOCUMENTAL (Req. 1, 2, 25)
+            {
+                numero: 1, trascendencia: 8, nivel: "Alta", categoria: "CAPTURA DOCUMENTAL",
+                descripcion: "El SGDEA debe permitir la captura masiva de documentos con procesamiento automático y asignación a estructuras organizacionales predefinidas según TRD.",
+                isoStandards: ["ISO 16175", "ISO 15489"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Captura documental", procesoArchivistico: "Captura masiva y procesamiento automático"
+            },
+            {
+                numero: 2, trascendencia: 9, nivel: "Alta", categoria: "CAPTURA DOCUMENTAL / CIERRE",
+                descripcion: "El SGDEA debe permitir el ingreso controlado de documentos con validación de formatos y restricción de modificación tras cierre del expediente con reglas legales de excepción.",
+                isoStandards: ["ISO 15489", "ISO 16175", "ISO 27001"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Captura documental", procesoArchivistico: "Ingreso controlado y restricción tras cierre"
+            },
+            {
+                numero: 25, trascendencia: 6, nivel: "Alta", categoria: "CAPTURA DOCUMENTAL",
+                descripcion: "El SGDEA debe permitir registro asociado a TRD con captura automática y validación de estructura documental según esquemas predefinidos.",
+                isoStandards: ["ISO 16175", "ISO 15489"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Captura documental", procesoArchivistico: "Registro asociado a TRD"
+            },
+
+            // CICLO DE VIDA CORE - CLASIFICACIÓN DOCUMENTAL (Req. 3, 4, 6)
+            {
+                numero: 3, trascendencia: 10, nivel: "Alta", categoria: "CLASIFICACIÓN DOCUMENTAL / CIERRE",
+                descripcion: "El SGDEA debe garantizar organización jerárquica de documentos manteniendo criterios de TRD y aplicar reglas legales de excepción tras cierre del expediente.",
+                isoStandards: ["ISO 15489", "ISO 30300", "ISO 27001"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Clasificación documental", procesoArchivistico: "Organización jerárquica y control de acceso"
+            },
+            {
+                numero: 4, trascendencia: 8, nivel: "Alta", categoria: "CLASIFICACIÓN DOCUMENTAL",
+                descripcion: "El SGDEA debe representar la organización jerárquica de expedientes y documentos con herencia de metadatos según esquema de clasificación documental.",
+                isoStandards: ["ISO 15489", "ISO 23081"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Clasificación documental", procesoArchivistico: "Organización jerárquica con herencia de metadatos"
+            },
+            {
+                numero: 6, trascendencia: 7, nivel: "Alta", categoria: "CLASIFICACIÓN DOCUMENTAL",
+                descripcion: "El SGDEA debe validar información de TRD mediante alertas y implementar control de acceso por perfil de usuario autorizado.",
+                isoStandards: ["ISO 15489", "ISO 27001"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Clasificación documental", procesoArchivistico: "Control de acceso y validación"
+            },
+
+            // CICLO DE VIDA CORE - CONFORMACIÓN DE EXPEDIENTES (Req. 7, 8, 9)
+            {
+                numero: 7, trascendencia: 17, nivel: "Alta", categoria: "CONFORMACIÓN DE EXPEDIENTES",
+                descripcion: "El SGDEA debe permitir inclusión lógica de documentos en expedientes con importación/exportación de TRD, establecer relaciones entre documentos y control de metadatos.",
+                isoStandards: ["ISO 16175", "ISO 23081", "ISO 15489"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Conformación de expedientes", procesoArchivistico: "Inclusión lógica y relaciones documentales"
+            },
+            {
+                numero: 8, trascendencia: 6, nivel: "Alta", categoria: "CONFORMACIÓN DE EXPEDIENTES",
+                descripcion: "El SGDEA debe permitir selección y uso de diferentes versiones de TRD para establecer relaciones entre documentos de manera coherente.",
+                isoStandards: ["ISO 15489", "ISO 30300"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Conformación de expedientes", procesoArchivistico: "Relaciones entre documentos y versionado"
+            },
+            {
+                numero: 9, trascendencia: 5, nivel: "Media", categoria: "CONFORMACIÓN DE EXPEDIENTES",
+                descripcion: "El SGDEA debe permitir integración con servidores de correo electrónico para control de metadatos documentales en la conformación de expedientes.",
+                isoStandards: ["ISO 16175", "ISO 15489"], criticidad: "Media", fase: "Fase 2",
+                cicloVida: "Conformación de expedientes", procesoArchivistico: "Control de metadatos e integración"
+            },
+
+            // CICLO DE VIDA CORE - DILIGENCIAMIENTO DE METADATOS (Req. 10, 14)
+            {
+                numero: 10, trascendencia: 6, nivel: "Alta", categoria: "DILIGENCIAMIENTO DE METADATOS",
+                descripcion: "El SGDEA debe mantener historial de acciones completo sobre documentos y expedientes con trazabilidad temporal de todas las operaciones realizadas.",
+                isoStandards: ["ISO 23081", "ISO 15489", "ISO 27001"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Diligenciamiento de metadatos", procesoArchivistico: "Historial de acciones y trazabilidad"
+            },
+            {
+                numero: 14, trascendencia: 5, nivel: "Media", categoria: "DILIGENCIAMIENTO DE METADATOS",
+                descripcion: "El SGDEA debe verificar contenido y estructura de documentos con validación automática de metadatos descriptivos y administrativos.",
+                isoStandards: ["ISO 23081", "ISO 16175"], criticidad: "Alta", fase: "Fase 2",
+                cicloVida: "Diligenciamiento de metadatos", procesoArchivistico: "Verificación de contenido y estructura"
+            },
+
+            // CICLO DE VIDA CORE - GENERACIÓN DE ÍNDICE ELECTRÓNICO (Req. 12, 13)
+            {
+                numero: 12, trascendencia: 7, nivel: "Alta", categoria: "GENERACIÓN DE ÍNDICE ELECTRÓNICO",
+                descripcion: "El SGDEA debe generar y permitir exportación del índice electrónico del expediente con estructura completa y metadatos para preservación.",
+                isoStandards: ["ISO 23081", "ISO 15489"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Generación de índice electrónico", procesoArchivistico: "Exportación del índice electrónico"
+            },
+            {
+                numero: 13, trascendencia: 6, nivel: "Alta", categoria: "GENERACIÓN DE ÍNDICE ELECTRÓNICO",
+                descripcion: "El SGDEA debe incorporar el índice electrónico en el SIP (Paquete de Información de Envío) para preservación digital a largo plazo.",
+                isoStandards: ["ISO 14721", "ISO 23081"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Generación de índice electrónico", procesoArchivistico: "Incorporación en el SIP"
+            },
+
+            // CICLO DE VIDA CORE - VALIDACIÓN DEL EXPEDIENTE (Req. 15, 16)
+            {
+                numero: 15, trascendencia: 8, nivel: "Alta", categoria: "VALIDACIÓN DEL EXPEDIENTE",
+                descripcion: "El SGDEA debe verificar composición completa del expediente antes de su formalización, asegurando integridad y completitud.",
+                isoStandards: ["ISO 15489", "ISO 23081"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Validación del expediente", procesoArchivistico: "Verificación de composición"
+            },
+            {
+                numero: 16, trascendencia: 9, nivel: "Alta", categoria: "VALIDACIÓN DEL EXPEDIENTE",
+                descripcion: "El SGDEA debe asignar número único de expediente y impedir eliminación no autorizada del contenido documental para garantizar integridad.",
+                isoStandards: ["ISO 15489", "ISO 27001"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Validación del expediente", procesoArchivistico: "Asignación de número único de expediente"
+            },
+
+            // CICLO DE VIDA CORE - INVENTARIO Y DISPOSICIÓN FINAL (Req. 48-52)
+            {
+                numero: 48, trascendencia: 7, nivel: "Alta", categoria: "INVENTARIO Y DISPOSICIÓN FINAL",
+                descripcion: "El SGDEA debe generar inventario automático de expedientes con gestión de disposición final según TRD vigente y normativas aplicables.",
+                isoStandards: ["ISO 15489", "ISO 30300"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Inventario y disposición final", procesoArchivistico: "Gestión de disposición final"
+            },
+            {
+                numero: 49, trascendencia: 6, nivel: "Alta", categoria: "INVENTARIO Y DISPOSICIÓN FINAL",
+                descripcion: "El SGDEA debe gestionar alertas automáticas para vencimiento de términos de retención documental según normativa vigente.",
+                isoStandards: ["ISO 15489"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Inventario y disposición final", procesoArchivistico: "Alertas de retención documental"
+            },
+            {
+                numero: 50, trascendencia: 10, nivel: "Alta", categoria: "INVENTARIO Y DISPOSICIÓN FINAL",
+                descripcion: "El SGDEA debe emitir alertas cuando expediente listo para eliminación tenga documentos vinculados, con acciones correctivas auditables.",
+                isoStandards: ["ISO 15489", "ISO 27001"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Inventario y disposición final", procesoArchivistico: "Alertas y control de eliminación"
+            },
+            {
+                numero: 51, trascendencia: 8, nivel: "Alta", categoria: "INVENTARIO Y DISPOSICIÓN FINAL",
+                descripcion: "En procesos de transferencia documental se debe garantizar integridad de expedientes y preservación de estructura archivística completa.",
+                isoStandards: ["ISO 14721", "ISO 18492", "ISO 13008"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Inventario y disposición final", procesoArchivistico: "Transferencia documental con integridad"
+            },
+            {
+                numero: 52, trascendencia: 9, nivel: "Alta", categoria: "INVENTARIO Y DISPOSICIÓN FINAL",
+                descripcion: "Durante migración entre sistemas se debe garantizar exportación con reglas de retención y vínculos archivísticos preservados.",
+                isoStandards: ["ISO 14721", "ISO 13008", "ISO 15489"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Inventario y disposición final", procesoArchivistico: "Migración con preservación de vínculos"
+            },
+
+            // REQUERIMIENTOS COMPLEMENTARIOS IMPORTANTES
+            {
+                numero: 22, trascendencia: 6, nivel: "Alta", categoria: "CONTROL Y SEGURIDAD",
+                descripcion: "El SGDEA debe permitir que todas las acciones efectuadas sobre el expediente sean registradas en un historial de eventos consultable.",
+                isoStandards: ["ISO 15489", "ISO 27001"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Auditoría y trazabilidad"
+            },
+            {
+                numero: 23, trascendencia: 3, nivel: "Media", categoria: "CONTROL Y TRAZABILIDAD",
+                descripcion: "El SGDEA debe permitir que el historial de eventos del expediente electrónico pueda ser exportado en formatos estándar.",
+                isoStandards: ["ISO 15489"], criticidad: "Media", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Exportación de auditoría"
+            },
+            {
+                numero: 29, trascendencia: 4, nivel: "Media", categoria: "TRAZABILIDAD",
+                descripcion: "El SGDEA debe permitir realizar la trazabilidad de los documentos electrónicos mostrando información de qué, quién, cuándo y cómo realizó acciones.",
+                isoStandards: ["ISO 15489", "ISO 27001"], criticidad: "Alta", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Trazabilidad completa"
+            },
+            {
+                numero: 41, trascendencia: 6, nivel: "Alta", categoria: "GESTIÓN HÍBRIDA",
+                descripcion: "El SGDEA debe permitir ingresar los datos de localización de un expediente híbrido (referencia cruzada al expediente físico).",
+                isoStandards: ["ISO 15489", "ISO 23081"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Gestión híbrida"
+            },
+            {
+                numero: 45, trascendencia: 9, nivel: "Alta", categoria: "RETENCIÓN Y DISPOSICIÓN",
+                descripcion: "Los SGDEA deben permitir acciones de disposición: conservación permanente, eliminación automática/autorizada, transferencia y selección.",
+                isoStandards: ["ISO 15489", "ISO 30300"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Acciones de disposición final"
+            },
+            {
+                numero: 47, trascendencia: 3, nivel: "Media", categoria: "ALERTAS DE RETENCIÓN",
+                descripcion: "El SGDEA debe activar automáticamente una alerta al rol administrador cuando el período de retención está a punto de cumplirse.",
+                isoStandards: ["ISO 15489"], criticidad: "Media", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Alertas de retención"
+            },
+            {
+                numero: 53, trascendencia: 5, nivel: "Media", categoria: "REPORTES DE TRANSFERENCIA",
+                descripcion: "El SGDEA deberá generar reporte del estado de transferencia/exportación y guardar datos en pistas de auditoría.",
+                isoStandards: ["ISO 15489"], criticidad: "Alta", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Reportes de transferencia"
+            },
+            {
+                numero: 55, trascendencia: 6, nivel: "Alta", categoria: "CAPTURA DE DOCUMENTOS",
+                descripcion: "El SGDEA debe permitir definición y parametrización de formatos de captura según necesidades del negocio y estándares del AGN.",
+                isoStandards: ["ISO 16175", "ISO 19005"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Parametrización de formatos"
+            },
+            {
+                numero: 67, trascendencia: 6, nivel: "Alta", categoria: "DIGITALIZACIÓN",
+                descripcion: "El SGDEA debe integrarse con soluciones de digitalización: OCR, ICR, múltiples resoluciones, reconocimiento de códigos de barras.",
+                isoStandards: ["ISO 16175", "ISO 19005"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Digitalización avanzada"
+            },
+            {
+                numero: 69, trascendencia: 4, nivel: "Media", categoria: "CAPTURA DE COMUNICACIONES",
+                descripcion: "El SGDEA debe permitir capturar mensajes de correo electrónico asignándolos dentro de una serie, subserie o expediente.",
+                isoStandards: ["ISO 15489", "ISO 16175"], criticidad: "Media", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Captura de comunicaciones"
+            },
+            {
+                numero: 71, trascendencia: 6, nivel: "Alta", categoria: "FIRMA ELECTRÓNICA",
+                descripcion: "El SGDEA debe permitir parametrizar firmas individuales, múltiples firmantes, firmas masivas y por lotes de documentos.",
+                isoStandards: ["eIDAS", "ISO 32000"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Firma electrónica"
+            },
+            {
+                numero: 80, trascendencia: 4, nivel: "Media", categoria: "INTEROPERABILIDAD",
+                descripcion: "El SGDEA debe contar con plataforma compatible con XML para importación de información garantizando interoperabilidad.",
+                isoStandards: ["ISO 16175", "ISO 23081"], criticidad: "Alta", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Interoperabilidad"
+            },
+            {
+                numero: 81, trascendencia: 3, nivel: "Media", categoria: "CORRECCIÓN DE METADATOS",
+                descripcion: "El SGDEA debe permitir actualizar metadatos de datos importados con inconsistencias, registrando operaciones en auditoría.",
+                isoStandards: ["ISO 23081", "ISO 15489"], criticidad: "Media", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Corrección de metadatos"
+            },
+            {
+                numero: 82, trascendencia: 6, nivel: "Alta", categoria: "CONVERSIÓN DE FORMATOS",
+                descripcion: "En el proceso de captura el SGDEA debe permitir conversión de formato de archivo a formato parametrizado previamente.",
+                isoStandards: ["ISO 19005", "ISO 16175"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Conversión de formatos"
+            },
+            {
+                numero: 86, trascendencia: 6, nivel: "Alta", categoria: "BÚSQUEDA Y PRESENTACIÓN",
+                descripcion: "El SGDEA debe proporcionar función de búsqueda con operadores booleanos, comodines, intervalos temporales y múltiples criterios.",
+                isoStandards: ["ISO 15489"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Búsqueda avanzada"
+            },
+            {
+                numero: 102, trascendencia: 5, nivel: "Media", categoria: "GESTIÓN DE METADATOS",
+                descripcion: "El SGDEA debe permitir que los valores de metadatos se hereden automáticamente desde el nivel superior en la jerarquía.",
+                isoStandards: ["ISO 23081"], criticidad: "Alta", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Herencia de metadatos"
+            },
+            {
+                numero: 107, trascendencia: 5, nivel: "Media", categoria: "EXTRACCIÓN DE METADATOS",
+                descripcion: "El SGDEA permite la extracción automática de metadatos de los documentos al momento de captura o cargue.",
+                isoStandards: ["ISO 23081"], criticidad: "Alta", fase: "Fase 2",
+                cicloVida: "Complementario", procesoArchivistico: "Extracción automática"
+            },
+            {
+                numero: 114, trascendencia: 12, nivel: "Alta", categoria: "CONTROL Y SEGURIDAD",
+                descripcion: "El SGDEA debe capturar y almacenar en pistas de auditoría información completa sobre acciones, usuarios, cambios y sesiones.",
+                isoStandards: ["ISO 27001", "ISO 15489"], criticidad: "Crítica", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Auditoría completa"
+            },
+            {
+                numero: 117, trascendencia: 4, nivel: "Media", categoria: "PROTECCIÓN DE AUDITORÍA",
+                descripcion: "El sistema debe impedir desactivar la generación y almacenamiento de las pistas de auditoría.",
+                isoStandards: ["ISO 27001", "ISO 15489"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Protección de auditoría"
+            },
+            {
+                numero: 122, trascendencia: 6, nivel: "Alta", categoria: "CONTROL Y SEGURIDAD",
+                descripcion: "El SGDEA debe permitir programar rutinas de copia de seguridad (backup) y su recuperación cuando sea necesario.",
+                isoStandards: ["ISO 27001", "ISO 22301"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Respaldo y recuperación"
+            },
+            {
+                numero: 127, trascendencia: 6, nivel: "Alta", categoria: "CONTROL Y SEGURIDAD",
+                descripcion: "El SGDEA debe contar con mecanismos de recuperación de credenciales de acceso obedeciendo políticas de ingreso seguro.",
+                isoStandards: ["ISO 27001", "ISO 27002"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Recuperación de credenciales"
+            },
+            {
+                numero: 145, trascendencia: 8, nivel: "Alta", categoria: "CONTROL Y SEGURIDAD",
+                descripcion: "El SGDEA debe permitir procedimientos automáticos para copias de seguridad y restauración de todos los elementos del sistema.",
+                isoStandards: ["ISO 27001", "ISO 22301", "ISO 14721"], criticidad: "Alta", fase: "Fase 1",
+                cicloVida: "Complementario", procesoArchivistico: "Continuidad del negocio"
+            }
+        ];
+
+        let currentFilteredData = requerimientos;
+
+        // Función para obtener clase CSS según ciclo de vida
+        function getCicloClass(ciclo) {
+            const classes = {
+                'Captura documental': 'cycle-captura',
+                'Clasificación documental': 'cycle-clasificacion',
+                'Conformación de expedientes': 'cycle-conformacion',
+                'Diligenciamiento de metadatos': 'cycle-metadatos',
+                'Generación de índice electrónico': 'cycle-indice',
+                'Validación del expediente': 'cycle-validacion',
+                'Cierre del expediente': 'cycle-cierre',
+                'Inventario y disposición final': 'cycle-disposicion',
+                'Complementario': 'cycle-complementario'
+            };
+            return classes[ciclo] || 'cycle-complementario';
+        }
+
+        // Función para obtener badge de criticidad
+        function getBadge(criticidad) {
+            const badges = {
+                'Crítica': '<span class="badge badge-critica">Crítica</span>',
+                'Alta': '<span class="badge badge-alta">Alta</span>',
+                'Media': '<span class="badge badge-media">Media</span>',
+                'Baja': '<span class="badge badge-baja">Baja</span>'
+            };
+            return badges[criticidad] || '<span class="badge badge-media">Media</span>';
+        }
+
+        // Función para renderizar la tabla con animación
+        function renderTable(data = requerimientos) {
+            currentFilteredData = data;
+            const tbody = document.getElementById('matrixBody');
+            tbody.innerHTML = '';
+
+            data.forEach((req, index) => {
+                const row = document.createElement('tr');
+                row.className = 'fade-in';
+                row.style.animationDelay = `${index * 0.02}s`;
+                row.innerHTML = `
+                    <td><div class="req-num">${req.numero}</div></td>
+                    <td style="text-align: center;"><strong>${req.trascendencia}</strong><br><small>${req.nivel}</small></td>
+                    <td>
+                        <div class="cycle-tag ${getCicloClass(req.cicloVida)}">${req.cicloVida}</div>
+                    </td>
+                    <td><div class="process">${req.procesoArchivistico}</div></td>
+                    <td><div class="description">${req.descripcion}</div></td>
+                    <td>
+                        ${req.isoStandards.map(iso => `<span class="iso-tag">${iso}</span>`).join(' ')}
+                    </td>
+                    <td style="text-align: center;">${getBadge(req.criticidad)}</td>
+                    <td style="text-align: center;"><strong>${req.fase}</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            updateSummaries(data);
+            updateFiltersStatus(data);
+        }
+
+        // Función para actualizar el estado de filtros
+        function updateFiltersStatus(data) {
+            const resultsCount = document.getElementById('resultsCount');
+            const activeFilters = document.getElementById('activeFilters');
+            
+            // Actualizar contador
+            resultsCount.textContent = `Mostrando ${data.length} de ${requerimientos.length} requerimientos`;
+            
+            // Mostrar filtros activos
+            const filters = [];
+            const cicloValue = document.getElementById('cicloFilter').value;
+            const criticidadValue = document.getElementById('criticidadFilter').value;
+            const faseValue = document.getElementById('faseFilter').value;
+            const isoValue = document.getElementById('isoFilter').value;
+            const searchValue = document.getElementById('searchInput').value;
+            
+            if (cicloValue) filters.push(`Ciclo: ${cicloValue}`);
+            if (criticidadValue) filters.push(`Criticidad: ${criticidadValue}`);
+            if (faseValue) filters.push(`Fase: ${faseValue}`);
+            if (isoValue) filters.push(`ISO: ${isoValue}`);
+            if (searchValue) filters.push(`Búsqueda: "${searchValue}"`);
+            
+            activeFilters.innerHTML = filters.map(filter => 
+                `<span class="filter-tag">${filter}</span>`
+            ).join('');
+        }
+
+        // Función para actualizar resúmenes
+        function updateSummaries(data) {
+            // Resumen por criticidad
+            const criticidad = {};
+            data.forEach(req => {
+                criticidad[req.criticidad] = (criticidad[req.criticidad] || 0) + 1;
+            });
+
+            const criticidadEl = document.getElementById('criticidadSummary');
+            criticidadEl.innerHTML = '';
+            Object.entries(criticidad).forEach(([crit, count]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `${crit}: <strong>${count}</strong> (${((count/data.length)*100).toFixed(1)}%)`;
+                criticidadEl.appendChild(li);
+            });
+
+            // Resumen por ciclo
+            const ciclo = {};
+            data.forEach(req => {
+                ciclo[req.cicloVida] = (ciclo[req.cicloVida] || 0) + 1;
+            });
+
+            const cicloEl = document.getElementById('cicloSummary');
+            cicloEl.innerHTML = '';
+            Object.entries(ciclo).forEach(([c, count]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `${c}: <strong>${count}</strong>`;
+                cicloEl.appendChild(li);
+            });
+
+            // Resumen por fase
+            const fase = {};
+            data.forEach(req => {
+                fase[req.fase] = (fase[req.fase] || 0) + 1;
+            });
+
+            const faseEl = document.getElementById('faseSummary');
+            faseEl.innerHTML = '';
+            Object.entries(fase).forEach(([f, count]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `${f}: <strong>${count}</strong> req.`;
+                faseEl.appendChild(li);
+            });
+
+            // Top ISO
+            const iso = {};
+            data.forEach(req => {
+                req.isoStandards.forEach(standard => {
+                    iso[standard] = (iso[standard] || 0) + 1;
+                });
+            });
+
+            const topIso = Object.entries(iso).sort(([,a], [,b]) => b - a).slice(0, 5);
+            const isoEl = document.getElementById('isoSummary');
+            isoEl.innerHTML = '';
+            topIso.forEach(([standard, count]) => {
+                const li = document.createElement('li');
+                li.innerHTML = `${standard}: <strong>${count}</strong> req.`;
+                isoEl.appendChild(li);
+            });
+        }
+
+        // Función para filtrar datos mejorada
+        function filterData() {
+            const cicloFilter = document.getElementById('cicloFilter').value;
+            const criticidadFilter = document.getElementById('criticidadFilter').value;
+            const faseFilter = document.getElementById('faseFilter').value;
+            const isoFilter = document.getElementById('isoFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+            let filteredData = requerimientos.filter(req => {
+                const matchCiclo = !cicloFilter || req.cicloVida === cicloFilter;
+                const matchCriticidad = !criticidadFilter || req.criticidad === criticidadFilter;
+                const matchFase = !faseFilter || req.fase === faseFilter;
+                const matchIso = !isoFilter || req.isoStandards.some(iso => iso === isoFilter);
+                const matchSearch = !searchInput || 
+                    req.descripcion.toLowerCase().includes(searchInput) ||
+                    req.categoria.toLowerCase().includes(searchInput) ||
+                    req.procesoArchivistico.toLowerCase().includes(searchInput) ||
+                    req.numero.toString().includes(searchInput) ||
+                    req.isoStandards.some(iso => iso.toLowerCase().includes(searchInput));
+
+                return matchCiclo && matchCriticidad && matchFase && matchIso && matchSearch;
+            });
+
+            renderTable(filteredData);
+        }
+
+        // Funciones para limpiar filtros
+        function clearAllFilters() {
+            document.getElementById('cicloFilter').value = '';
+            document.getElementById('criticidadFilter').value = '';
+            document.getElementById('faseFilter').value = '';
+            document.getElementById('isoFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchClear').classList.remove('show');
+            renderTable(requerimientos);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchClear').classList.remove('show');
+            filterData();
+        }
+
+        // Función para exportar a CSV
+        function exportToCSV() {
+            const headers = ['Req', 'Trascendencia', 'Ciclo de Vida', 'Proceso', 'Descripción', 'ISO', 'Criticidad', 'Fase'];
+            const csvContent = [
+                headers.join(','),
+                ...currentFilteredData.map(req => [
+                    req.numero,
+                    req.trascendencia,
+                    `"${req.cicloVida}"`,
+                    `"${req.procesoArchivistico}"`,
+                    `"${req.descripcion.replace(/"/g, '""')}"`,
+                    `"${req.isoStandards.join(', ')}"`,
+                    req.criticidad,
+                    req.fase
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Matriz_SGEDA_Filtrada_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Función para exportar a Excel
+        function exportToExcel() {
+            const workbook = XLSX.utils.book_new();
+
+            // Hoja principal con datos filtrados
+            const mainData = [
+                ['Req', 'Trascendencia', 'Nivel', 'Ciclo de Vida', 'Proceso Archivístico', 'Descripción', 'Estándares ISO', 'Criticidad', 'Fase'],
+                ...currentFilteredData.map(req => [
+                    req.numero,
+                    req.trascendencia,
+                    req.nivel,
+                    req.cicloVida,
+                    req.procesoArchivistico,
+                    req.descripcion,
+                    req.isoStandards.join(', '),
+                    req.criticidad,
+                    req.fase
+                ])
+            ];
+
+            const mainSheet = XLSX.utils.aoa_to_sheet(mainData);
+            mainSheet['!cols'] = [
+                {wch: 5}, {wch: 12}, {wch: 8}, {wch: 25}, {wch: 30}, {wch: 60}, {wch: 20}, {wch: 10}, {wch: 8}
+            ];
+            XLSX.utils.book_append_sheet(workbook, mainSheet, 'Matriz SGEDA Filtrada');
+
+            // Resumen por ciclo
+            const cicloStats = {};
+            currentFilteredData.forEach(req => {
+                if (!cicloStats[req.cicloVida]) {
+                    cicloStats[req.cicloVida] = { total: 0, critica: 0, alta: 0, media: 0, baja: 0 };
+                }
+                cicloStats[req.cicloVida].total++;
+                cicloStats[req.cicloVida][req.criticidad.toLowerCase()]++;
+            });
+
+            const cicloData = [
+                ['Ciclo de Vida', 'Total', 'Crítica', 'Alta', 'Media', 'Baja', 'Porcentaje'],
+                ...Object.entries(cicloStats).map(([ciclo, stats]) => [
+                    ciclo,
+                    stats.total,
+                    stats.critica || 0,
+                    stats.alta || 0,
+                    stats.media || 0,
+                    stats.baja || 0,
+                    `${((stats.total/currentFilteredData.length)*100).toFixed(1)}%`
+                ])
+            ];
+
+            const cicloSheet = XLSX.utils.aoa_to_sheet(cicloData);
+            cicloSheet['!cols'] = [{wch: 25}, {wch: 8}, {wch: 8}, {wch: 8}, {wch: 8}, {wch: 8}, {wch: 10}];
+            XLSX.utils.book_append_sheet(workbook, cicloSheet, 'Resumen por Ciclo');
+
+            const fileName = `Matriz_SGEDA_CicloVida_Filtrada_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+        }
+
+        // Event listeners mejorados
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar tabla
+            renderTable();
+
+            // Event listeners para filtros
+            document.getElementById('cicloFilter').addEventListener('change', filterData);
+            document.getElementById('criticidadFilter').addEventListener('change', filterData);
+            document.getElementById('faseFilter').addEventListener('change', filterData);
+            document.getElementById('isoFilter').addEventListener('change', filterData);
+            
+            // Event listener para búsqueda con debounce
+            let searchTimeout;
+            const searchInput = document.getElementById('searchInput');
+            const searchClear = document.getElementById('searchClear');
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const value = this.value;
+                
+                // Mostrar/ocultar botón limpiar
+                if (value) {
+                    searchClear.classList.add('show');
+                } else {
+                    searchClear.classList.remove('show');
+                }
+                
+                // Filtrar con debounce
+                searchTimeout = setTimeout(() => {
+                    filterData();
+                }, 300);
+            });
+
+            // Atajos de teclado
+            document.addEventListener('keydown', function(e) {
+                // Ctrl + F para focus en búsqueda
+                if (e.ctrlKey && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                
+                // Escape para limpiar filtros
+                if (e.key === 'Escape') {
+                    clearAllFilters();
+                }
+            });
+
+            // Actualizar números de estadísticas
+            const totalReqs = requerimientos.length;
+            const cicloVidaCore = requerimientos.filter(req => req.cicloVida !== 'Complementario').length;
+            
+            const statNumbers = document.querySelectorAll('.stat-number');
+            if (statNumbers.length >= 4) {
+                statNumbers[0].textContent = totalReqs;
+                statNumbers[1].textContent = cicloVidaCore;
+                statNumbers[2].textContent = '8';
+                statNumbers[3].textContent = '3';
+            }
+
+            // Mostrar resumen en consola
+            console.log('📊 MATRIZ SGEDA - FILTROS MEJORADOS');
+            console.log('=====================================');
+            console.log(`✅ Total de requerimientos: ${totalReqs}`);
+            console.log(`✅ Requisitos del ciclo de vida core: ${cicloVidaCore}`);
+            console.log(`✅ Requerimientos complementarios: ${totalReqs - cicloVidaCore}`);
+            console.log('');
+            console.log('🔍 NUEVAS FUNCIONALIDADES DE FILTRADO:');
+            console.log('• Filtros visuales mejorados con animaciones');
+            console.log('• Búsqueda en tiempo real con debounce');
+            console.log('• Filtro por estándares ISO específicos');
+            console.log('• Estado de filtros activos en tiempo real');
+            console.log('• Botón de limpiar filtros individual y general');
+            console.log('• Exportación respeta filtros aplicados');
+            console.log('• Atajos de teclado: Ctrl+F (búsqueda), Escape (limpiar)');
+            console.log('• Animaciones de carga de tabla');
+            console.log('• Resúmenes dinámicos basados en filtros');
+        });
+    </script>
+</body>
+</html>

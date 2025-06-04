@@ -2,7 +2,7 @@
     Autoría del Código Fuente:
     - Autor Original: [Jhon Gonzalez / Grupo IB Consulting]
     - Fecha de Optimización: Junio de 2025
-    - Propósito: Validación y optimización del dashboard MOREQ10 para la conformación de expedientes colombia
+    - Propósito: Validación y optimización del dashboard MOREQ10 para la conformación de expedientes  
 -->
 <!DOCTYPE html>
 <html lang="es">
@@ -589,7 +589,7 @@
 <body>
     <div class="dashboard-container">
         <header class="dashboard-header">
-            <h1>Dashboard MOREQ10 - Conformación de Expedientes Colombianos</h1>
+            <h1>Dashboard MOREQ10 - Conformación de Expedientes (Caso Colombiano)</h1>
             <p>174 Requisitos MOREQ10 Mapeados a Conformación de Expedientes según Acuerdo 01/2024</p>
             <div class="stats-bar">
                 <div class="stat-item">

@@ -59,6 +59,8 @@ Esta matriz y su dashboard asociado están listos para ser usados en:
 
 Si tu entidad necesita apoyo en la implementación de requisitos MOREQ10, alineación normativa con el Acuerdo 01 de 2024, diseño de expedientes electrónicos, auditorías o procesos de formación especializada, puedes contactarnos para una consultoría personalizada:
 
-**Correo:** [consultoradocumental@example.com]  
-**LinkedIn:** [https://linkedin.com/in/consultoradigital]  
-**WhatsApp:** [+57 300 000 0000]
+**Correo:** [jhon.gonzalez@gmail.com]  
+**facebook:** [https://web.facebook.com/SoyArchivistaDigital]  
+**Website:** [http://archivistadigital.com]
+**LinkedIn:** [ https://www.linkedin.com/newsletters/archivista-digital-7268276454386196480/]
+**WhatsApp:** [+57 318 684 9778]
